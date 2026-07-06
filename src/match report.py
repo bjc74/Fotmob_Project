@@ -143,3 +143,22 @@ def print_match_report(report):
     print(f"- Shots Blocked: {shots_blocked.iloc[1]}")
 report = match_report(3749253)
 print_match_report(report)
+def test_many_reports(competition_id, season_id, n=20):
+    matches = sb.matches(competition_id=competition_id, season_id=season_id)
+
+    failures = []
+
+    for match_id in matches["match_id"].head(n):
+        try:
+            report = match_report(match_id)
+            print_match_report(report)
+            print("\n" + "-" * 60 + "\n")
+        except Exception as e:
+            failures.append({
+                "match_id": match_id,
+                "error": str(e)
+            })
+
+    return pd.DataFrame(failures)
+failures = test_many_reports(9, 281, n=5)
+print(failures)

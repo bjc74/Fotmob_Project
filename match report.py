@@ -154,6 +154,36 @@ def export_report(report, output_dir="outputs"):
     ''' match_<match_id>_team_stats.csv
         match_<match_id>_shot_summary.csv
         match_<match_id>_top_players.csv'''
-report = match_report(3749253)
+def validate_scores(competition_id, season_id, n=20):
+    matches = sb.matches(competition_id=competition_id, season_id=season_id)
+    errors = []
+    for i in range(n):
+        match_id = matches["match_id"].iloc[i]
+        home_score_offical = matches["home_score"].iloc[i]
+        away_score_official = matches["away_score"].iloc[i]
+        home_team = matches["home_team"].iloc[i]
+        away_team = matches["away_team"].iloc[i]
+        report = match_report(match_id)
+        score = report["score"]
+        home_score_calculated = score.get(home_team)
+        away_score_calculated = score.get(away_team)
+        if home_score_offical != home_score_calculated and away_score_official != away_score_calculated:
+            errors.append({
+                "match_id":match_id,
+                "home_team":home_team,
+                "away_team":away_team,
+                "home_score_official":home_score_offical,
+                "home_score_calculated":home_score_calculated,
+                "away_score_official":away_score_official,
+                "away_score_calculated":away_score_calculated
+            })
+    return pd.DataFrame(errors)
+
+
+
+    
+    
+report = match_report(3749493)
 print_match_report(report)
 export_report(report, output_dir="outputs")
+print(validate_scores(2, 44))

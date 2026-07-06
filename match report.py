@@ -1,6 +1,8 @@
 import pandas as pd
 from statsbombpy import sb
+import matplotlib.pyplot as plt
 import os
+
 def match_report(match_id):
     lineups, events, team1, team2 = load_match_data(match_id)
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
@@ -151,9 +153,6 @@ def export_report(report, output_dir="outputs"):
     team_stats_csv = report["team_stats"].to_csv(team_stats_path, index = False)
     shot_summary_csv = report["shot_summary"].to_csv(shot_summary_path, index = False)
     top_players_csv = report["top_players"].to_csv(top_players_path, index = False)
-    ''' match_<match_id>_team_stats.csv
-        match_<match_id>_shot_summary.csv
-        match_<match_id>_top_players.csv'''
 def validate_scores(competition_id, season_id, n=20):
     matches = sb.matches(competition_id=competition_id, season_id=season_id)
     errors = []
@@ -178,12 +177,67 @@ def validate_scores(competition_id, season_id, n=20):
                 "away_score_calculated":away_score_calculated
             })
     return pd.DataFrame(errors)
-
-
-
-    
-    
+def match_report_from_competition(competition_id, season_id, match_id):
+    matches = sb.matches(competition_id=competition_id, season_id=season_id)
+    match = matches[matches["match_id"] == match_id].iloc[0]
+    home_team = match["home_team"]
+    away_team = match["away_team"]
+    return match_report(match_id, home_team=home_team, away_team=away_team)
+def plot_team_stats(report, output_dir="outputs"):
+    match_id = report["match_id"]
+    os.makedirs(output_dir, exist_ok=True)
+    team1, team2 = report["teams"]
+    normalised_stats_by_metric = normalise_stats_by_metric(report)
+    normalised_stats_by_metric.plot.bar(rot = 45)
+    plot_team_stats_path = os.path.join(output_dir, f"match_{match_id}_plot.png")
+    plt.ylabel("Share of match total (%)")
+    plt.title(f"Team event share by metric — match {match_id}")
+    plt.tight_layout()
+    plt.savefig(plot_team_stats_path)
+    plt.show()
+    return normalised_stats_by_metric
+def normalise_stats_by_metric(report):
+    team1,team2 = report["teams"]
+    shots = report["team_stats"]["shots"]
+    carries = report["team_stats"]["carries"]
+    pressures = report["team_stats"]["pressures"]
+    passes = report["team_stats"]["passes"]
+    fouls_committed = report["team_stats"]["fouls_committed"]
+    team1_normalised_shots = shots.iloc[0]/(shots.iloc[0] + shots.iloc[1]) *100
+    team2_normalised_shots = 100 - team1_normalised_shots
+    team1_normalised_carries = carries.iloc[0]/(carries.iloc[0]+carries.iloc[1]) *100
+    team2_normalised_carries = 100 - team1_normalised_carries
+    team1_normalised_pressures = pressures.iloc[0]/(pressures.iloc[0]+pressures.iloc[1])*100
+    team2_normalised_pressures = 100 - team1_normalised_pressures
+    team1_normalised_passes = passes.iloc[0]/(passes.iloc[0]+passes.iloc[1])*100
+    team2_normalised_passes = 100 - team1_normalised_passes
+    team1_normalised_fouls_committed = fouls_committed.iloc[0]/(fouls_committed.iloc[0]+fouls_committed.iloc[1])*100
+    team2_normalised_fouls_committed = 100 - team1_normalised_fouls_committed
+    stats_by_metric = ({
+        "normalised_shots":{
+            team1:team1_normalised_shots,
+            team2:team2_normalised_shots
+        },
+        "normalised_passes":{
+            team1:team1_normalised_passes,
+            team2:team2_normalised_passes
+        },
+        "normalised_carries":{
+            team1:team1_normalised_carries,
+            team2:team2_normalised_carries
+        },
+        "normalised_pressures":{
+            team1:team1_normalised_pressures,
+            team2:team2_normalised_pressures
+        },
+        "normalised_fouls_committed":{
+            team1:team1_normalised_fouls_committed,
+            team2:team2_normalised_fouls_committed
+        }
+    })
+    return pd.DataFrame(stats_by_metric).T
 report = match_report(3749493)
 print_match_report(report)
 export_report(report, output_dir="outputs")
 print(validate_scores(2, 44))
+plot_team_stats(report)

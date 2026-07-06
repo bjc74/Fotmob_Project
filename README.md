@@ -11,6 +11,8 @@ The report includes:
 - Top players by event count
 - Handling of own goals in the score calculation
 - Exports shot summary, team stats and top players as CSV files
+- Includes score validation against official match data
+- Team event-share visualisation exported as PNG
 
 ## Why I built this
 
@@ -26,6 +28,8 @@ The main workflow is:
 report = match_report(match_id)
 print_match_report(report)
 export_report(report, output_dir="outputs")
+print(validate_scores(competition_id, season_id))
+plot_team_stats(report)
 ```
 ## Example report
 Match: Liverpool 1-2 Arsenal
@@ -73,6 +77,7 @@ Arsenal:
 ## Current limitations
 - Shots on target is calculated as shots saved + goals - we don't know whether to classify blocked shots as on or off target
 - Current stats are all basic, no advanced stats such as expected goals added yet
+- May print away team - home team instead of home team - away team - this can be prevented by using match_report_by_competition instead
 
 ## Next Steps
 - Add team/player visualisations

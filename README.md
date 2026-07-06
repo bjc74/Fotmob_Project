@@ -1,4 +1,3 @@
-# Fotmob_Project
 # Mini FotMob / Football Match Report Generator
 
 This project uses StatsBomb open event data to generate a basic football match report for a given match ID.
@@ -11,6 +10,7 @@ The report includes:
 - Shots on target, off target and blocked shots
 - Top players by event count
 - Handling of own goals in the score calculation
+- Exports shot summary, team stats and top players as CSV files
 
 ## Why I built this
 
@@ -25,6 +25,7 @@ The main workflow is:
 ```python
 report = match_report(match_id)
 print_match_report(report)
+export_report(report, output_dir="outputs")
 ```
 ## Example report
 Match: Liverpool 1-2 Arsenal
@@ -68,3 +69,13 @@ Arsenal:
 - Shots On Target: 6
 - Shots Off Target: 4
 - Shots Blocked: 1
+
+## Current limitations
+- Shots on target is calculated as shots saved + goals - we don't know whether to classify blocked shots as on or off target
+- Current stats are all basic, no advanced stats such as expected goals added yet
+
+## Next Steps
+- Add team/player visualisations
+- Add shot maps
+- Add SQL storage layer
+- Improve project structure further

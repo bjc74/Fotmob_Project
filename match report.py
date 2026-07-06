@@ -1,5 +1,6 @@
 import pandas as pd
 from statsbombpy import sb
+import os
 def match_report(match_id):
     lineups, events, team1, team2 = load_match_data(match_id)
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
@@ -141,5 +142,18 @@ def print_match_report(report):
     print(f"- Shots On Target: {shots_on_target.iloc[1]}")
     print(f"- Shots Off Target: {shots_off_target.iloc[1]}")
     print(f"- Shots Blocked: {shots_blocked.iloc[1]}")
+def export_report(report, output_dir="outputs"):
+    os.makedirs(output_dir, exist_ok=True)
+    match_id = report["match_id"]
+    team_stats_path = os.path.join(output_dir, f"match_{match_id}_team_stats.csv")
+    shot_summary_path = os.path.join(output_dir, f"match_{match_id}_shot_summary.csv")
+    top_players_path = os.path.join (output_dir, f"match_{match_id}_top_players.csv")
+    team_stats_csv = report["team_stats"].to_csv(team_stats_path, index = False)
+    shot_summary_csv = report["shot_summary"].to_csv(shot_summary_path, index = False)
+    top_players_csv = report["top_players"].to_csv(top_players_path, index = False)
+    ''' match_<match_id>_team_stats.csv
+        match_<match_id>_shot_summary.csv
+        match_<match_id>_top_players.csv'''
 report = match_report(3749253)
 print_match_report(report)
+export_report(report, output_dir="outputs")

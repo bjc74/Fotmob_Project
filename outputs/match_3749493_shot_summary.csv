@@ -1,3 +1,3 @@
-team,total_shots,goals,shots_on_target,shots_blocked,shots_off_target
-Everton,15,1,5,5,5
-Arsenal,14,2,4,3,6
+team,total_shots,xg,goals,shots_on_target,shots_blocked,shots_off_target
+Everton,15,1.267483312,1,5,5,5
+Arsenal,14,2.121151807,2,4,3,6

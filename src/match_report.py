@@ -2,7 +2,6 @@ import pandas as pd
 from statsbombpy import sb
 import matplotlib.pyplot as plt
 import os
-
 def match_report(match_id):
     lineups, events, team1, team2 = load_match_data(match_id)
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
@@ -19,15 +18,15 @@ def match_report(match_id):
     team1_shots_on_target = team1_shots_saved + team1_goals
     team2_shots_on_target = team2_shots_saved + team2_goals
     top_players_by_events = get_top_players_by_events(events, 5)
-    top_on_ball_contributors = get_attacking_stats(match_id=match_id)
-    top_xg_shots, xg_by_team = get_xg_stats(match_id)
-    xg_timeline = get_xg_timeline(match_id=match_id)
-    shot_map_data_team1 = get_shot_map_data(match_id, team1)
-    shot_map_data_team2 = get_shot_map_data(match_id, team2)
-    pass_network_team1 = get_pass_network_data(match_id, team1)
-    pass_network_team2 = get_pass_network_data(match_id, team2)
-    pass_edges_team1 = get_pass_edges(match_id, team1)
-    pass_edges_team2 = get_pass_edges(match_id, team2)
+    top_on_ball_contributors = get_attacking_stats(events)
+    top_xg_shots, xg_by_team = get_xg_stats(events)
+    xg_timeline = get_xg_timeline(events)
+    shot_map_data_team1 = get_shot_map_data(events, team1)
+    shot_map_data_team2 = get_shot_map_data(events, team2)
+    pass_network_team1 = get_pass_network_data(events, lineups, team1)
+    pass_network_team2 = get_pass_network_data(events, lineups, team2)
+    pass_edges_team1 = get_pass_edges(events, lineups, team1)
+    pass_edges_team2 = get_pass_edges(events, lineups, team2)
     team1_xg = xg_by_team.loc[team1]
     team2_xg = xg_by_team.loc[team2]
     team_stats = pd.DataFrame([
@@ -100,42 +99,6 @@ def match_report(match_id):
         }
                         
     }
-def get_score(events, team1, team2):
-    team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
-    team1_own_goals_for, team2_own_goals_for = count_events_by_team("Own Goal For", events, team1, team2)
-    return(team1_goals + team1_own_goals_for), (team2_goals + team2_own_goals_for)
-def load_match_data(match_id):
-    lineups = sb.lineups(match_id = match_id)
-    events = sb.events(match_id = match_id)
-    events = events.dropna(how = 'all', axis = 1)
-    teams = list(lineups.keys())
-    team1 = teams[0]
-    team2 = teams[1]
-    return lineups, events, team1, team2
-def count_events_by_team(event, events, team1, team2):
-    event_everyone = events[events["type"] == event]
-    event_by_team = event_everyone["team"].value_counts()
-    team1_count = event_by_team.get(team1, 0)
-    team2_count = event_by_team.get(team2, 0)
-    return team1_count, team2_count
-def count_events_by_player(event, events):
-    event = events[events["type"] == event]
-    event_by_player = event["player"].value_counts()
-    return event_by_player
-def get_top_players_by_events(events, n):
-    #Series with named index + reset_index = DataFrame
-    events_by_player = events["player"].value_counts()
-    events_by_player = events_by_player.head(n)
-    events_by_player = events_by_player.rename_axis("player")
-    events_by_player = events_by_player.reset_index(name = "events")
-    return events_by_player
-def count_shot_outcome_by_team(shot_type, events, team1, team2):
-    shots = events[events["type"] == "Shot"]
-    goals = shots[shots["shot_outcome"] == shot_type]
-    goals_by_team = goals["team"].value_counts()
-    team1_score = goals_by_team.get(team1, 0)
-    team2_score = goals_by_team.get(team2, 0)
-    return team1_score, team2_score
 def print_match_report(report):
     team_stats = report["team_stats"].set_index("team")
     shot_summary = report["shot_summary"].set_index("team")
@@ -234,110 +197,8 @@ def validate_scores(competition_id, season_id, n=20):
                 "away_score_calculated":away_score_calculated
             })
     return pd.DataFrame(errors)
-    return match_report(match_id, home_team=home_team, away_team=away_team)
-def get_xg_stats(match_id):
-    events = sb.events(match_id=match_id)
-    shots = events[events["type"] == "Shot"]
-    shots = shots[["player", "team", "minute", "shot_statsbomb_xg", "shot_outcome"]]
-    expected_goals_by_team = shots.groupby("team")["shot_statsbomb_xg"].sum()
-    sorted_shots = shots.sort_values("shot_statsbomb_xg", ascending = False).head()
-    return sorted_shots, expected_goals_by_team
-def get_attacking_stats(match_id):
-    events = sb.events(match_id=match_id)
-    events = events[events["type"].isin(["Shot", "Pass", "Carry", "Dribble"])]
-    events = events[["player", "team", "type"]]
-    events = events.groupby(["player", "team", "type"]).size().unstack(fill_value=0)
-    events["total_attacking_stats"] = events.sum(axis=1)
-    events = events.reset_index()
-    sorted_events = events.sort_values('total_attacking_stats', ascending=False)
-    return sorted_events
-def get_xg_timeline(match_id):
-    events = sb.events(match_id = match_id)
-    shots = events[events["type"] == "Shot"]
-    shots = shots[["minute", "second", "team", "player", "shot_statsbomb_xg", "shot_outcome"]]
-    shots["cumulative_xg"] = shots.groupby("team")["shot_statsbomb_xg"].cumsum()
-    return shots
-def get_shot_map_data(match_id, team):
-    events = sb.events(match_id=match_id)
-    events = events[events['team'] == team]
-    shots = events[events['type'] == 'Shot']
-    shots['x'] = shots['location'].str[0]
-    shots['y'] = shots['location'].str[1]
-    shots = shots[['player', 'team', 'minute','x','y', 'shot_statsbomb_xg', 'shot_outcome']]
-    return shots
-def get_pass_combinations(match_id, team):
-    events = sb.events(match_id)
-    events = events[events['team'] == team]
-    passes = events[events['type'] == 'Pass']
-    passes = passes[['team', 'player', 'pass_recipient']]
-    pass_combinations = passes.value_counts()
-    pass_combinations = pass_combinations.reset_index(name = 'pass_count')
-    pass_combinations = pass_combinations.rename(columns={'player':'passer', 'pass_recipient':'recipient'})
-    pass_combinations = pass_combinations.sort_values(['team', 'pass_count'], ascending=[True, False])
-    pass_combinations = pass_combinations.where(pass_combinations['pass_count'] >=5).dropna()
-    return pass_combinations
-def get_pass_network_data(match_id, team):
-    lineups = sb.lineups(match_id)
-    lineups = lineups[team]
-    lineup_numbers = lineups[['player_name', 'jersey_number']]
-    events = sb.events(match_id)
-    events_by_team = events[events['team'] == team]
-    passes = events_by_team[events_by_team['type'] == 'Pass']
-    passes = passes.dropna(subset = ['pass_recipient'])
-    pass_network = passes[['team', 'player', 'location']]
-    pass_network['x'] = pass_network['location'].str[0]
-    pass_network['y'] = pass_network['location'].str[1]
-    pass_network = pass_network[['team', 'player','x', 'y']]
-    pass_network = pass_network.groupby(['team','player']).agg(avg_x = ('x', 'mean'), avg_y = ('y','mean'), total_passes = ('player', 'size')).reset_index()
-    pass_network = pass_network.sort_values(['team', 'total_passes'], ascending = [True, False])
-    pass_network = pd.merge(pass_network, lineup_numbers, how = 'left', left_on = 'player', right_on = 'player_name')
-    pass_network = pass_network.drop(columns="player_name")
-    return pass_network
-def get_pass_edges(match_id, team):
-    pass_network = get_pass_network_data(match_id, team)
-    pass_combinations = get_pass_combinations(match_id, team)
-    pass_edges = pd.merge(pass_combinations, pass_network, how = 'inner', left_on = 'passer', right_on = 'player')
-    pass_edges = pass_edges.rename(columns={"avg_x": "passer_x","avg_y": "passer_y"})
-    pass_edges = pd.merge(pass_edges, pass_network, how = 'inner', left_on = 'recipient', right_on = 'player')
-    pass_edges = pass_edges.rename(columns={'avg_x':'recipient_x', 'avg_y':'recipient_y'})
-    pass_edges = pass_edges[['passer', 'team', 'pass_count' ,'passer_x', 'passer_y', 'recipient', 'recipient_x', 'recipient_y', ]]
-    return pass_edges
-def plot_pass_network(match_id, team, output_dir = 'outputs'):
-    pass_network = get_pass_network_data(match_id, team)
-    pass_edges = get_pass_edges(match_id, team)
-    pass_network_data_path  =os.path.join(output_dir, f'match_{match_id}_{team}_pass_network.png')
-    ax1 = pass_network.plot.scatter(x = 'avg_x', y = 'avg_y', s = pass_network['total_passes']*10)
-    for _, row in pass_network.iterrows():
-        if pd.notna(row['jersey_number']) and row['jersey_number'] != 0:
-            label = int(row["jersey_number"])
-        else:
-            label = row["player"].split()[-1]
-        ax1.annotate(label,(row["avg_x"], row["avg_y"]),ha="center",va="center")
-    max_line_width = pass_edges['pass_count'].max()
-    for _,row in pass_edges.iterrows():
-        ax1.plot((row['passer_x'] ,row['recipient_x']),(row['passer_y'], row['recipient_y']), lw = 0.5 + row['pass_count']*5/max_line_width, color = 'red', alpha = 0.4)
-    plt.title(f'match_{match_id}_pass_network')
-    plt.tight_layout()
-    plt.savefig(pass_network_data_path)
-    plt.show()
-#report = match_report(3749493)
-#print(team1)
-#print_match_report(report)
-#export_report(report, output_dir="outputs")
-#validate_scores(2, 44)
-#plot_team_stats(report)
-print(os.getcwd())
-print(os.listdir())
 from visualisations import plot_graphs
+from analytics import load_match_data, get_score, count_events_by_team, count_events_by_player, get_top_players_by_events, count_shot_outcome_by_team, get_xg_stats, get_attacking_stats, get_xg_timeline, get_shot_map_data, get_pass_combinations, get_pass_network_data, get_pass_edges
 
 report = match_report(3749493)
-
-plot_graphs(
-    3749493,
-    report,
-    team_stats=True,
-    xg_race=True,
-    shot_map=True,
-    pass_network=True
-) 
 

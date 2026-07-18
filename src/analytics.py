@@ -71,7 +71,7 @@ def get_pass_combinations(events, team):
     pass_combinations = pass_combinations.reset_index(name = 'pass_count')
     pass_combinations = pass_combinations.rename(columns={'player':'passer', 'pass_recipient':'recipient'})
     pass_combinations = pass_combinations.sort_values(['team', 'pass_count'], ascending=[True, False])
-    pass_combinations = pass_combinations.where(pass_combinations['pass_count'] >=5).dropna()
+    pass_combinations = pass_combinations[pass_combinations["pass_count"] >= 5].copy()
     return pass_combinations
 def get_pass_network_data(events, lineups, team):
     lineups = lineups[team]

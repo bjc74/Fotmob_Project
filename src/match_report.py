@@ -1,7 +1,7 @@
 import pandas as pd
 from statsbombpy import sb
-import matplotlib.pyplot as plt
 import os
+from analytics import load_match_data, get_score, count_events_by_team, get_top_players_by_events, count_shot_outcome_by_team, get_xg_stats, get_attacking_stats, get_xg_timeline, get_shot_map_data, get_pass_network_data, get_pass_edges
 def match_report(match_id):
     lineups, events, team1, team2 = load_match_data(match_id)
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
@@ -197,8 +197,7 @@ def validate_scores(competition_id, season_id, n=20):
                 "away_score_calculated":away_score_calculated
             })
     return pd.DataFrame(errors)
-from visualisations import plot_graphs
-from analytics import load_match_data, get_score, count_events_by_team, count_events_by_player, get_top_players_by_events, count_shot_outcome_by_team, get_xg_stats, get_attacking_stats, get_xg_timeline, get_shot_map_data, get_pass_combinations, get_pass_network_data, get_pass_edges
 
-report = match_report(3749493)
+
+
 

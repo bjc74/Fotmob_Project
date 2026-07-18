@@ -86,7 +86,7 @@ pip install -r requirements.txt
 Select a StatsBomb match ID in `main.py`, then run:
 
 ```bash
-python main.py
+python src/main.py
 ```
 
 The program:
@@ -173,7 +173,7 @@ Arsenal:
 After generating the required CSV outputs, run:
 
 ```bash
-python sql_analysis.py
+python src/sql_analysis.py
 ```
 
 The SQL outputs are saved under:
@@ -195,13 +195,11 @@ Football_match_analytics/
 │       ├── pass_network.png
 │       ├── shot_map.png
 │       └── xg_race.png
-├── notes/
 ├── src/
 │   ├── analytics.py
 │   ├── main.py
 │   ├── match_report.py
 │   ├── sql_analysis.py
-│   ├── SQL.py
 │   └── visualisations.py
 ├── .gitattributes
 ├── .gitignore

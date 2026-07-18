@@ -14,21 +14,22 @@ def plot_team_stats(report, output_dir="outputs"):
     plt.tight_layout()
     plt.savefig(plot_team_stats_path)
     plt.show()
+    plt.close()
+def get_percentage_share(event_type, team_stats, team1, team2):
+    if team_stats.loc[team1, event_type] == 0 and team_stats.loc[team2, event_type] == 0:
+        return 50, 50
+    else:
+        team1_share = team_stats.loc[team1, event_type]/(team_stats.loc[team1, event_type] + team_stats.loc[team2, event_type]) *100
+        return team1_share, 100 - team1_share
 def normalise_stats_by_metric(report):
     team1,team2 = report["teams"]
     team_stats = report["team_stats"].set_index("team")
-    team1_normalised_shots = team_stats.loc[team1, "shots"] /(team_stats.loc[team1, "shots"] + team_stats.loc[team2, "shots"]) *100
-    team2_normalised_shots = 100 - team1_normalised_shots
-    team1_normalised_carries = team_stats.loc[team1, "carries"]/(team_stats.loc[team1, "carries"] + team_stats.loc[team2, "carries"])*100
-    team2_normalised_carries = 100 - team1_normalised_carries
-    team1_normalised_pressures = team_stats.loc[team1, "pressures"]/(team_stats.loc[team1, "pressures"] + team_stats.loc[team2, "pressures"])*100
-    team2_normalised_pressures = 100 - team1_normalised_pressures
-    team1_normalised_passes = team_stats.loc[team1, "passes"]/(team_stats.loc[team1, "passes"] + team_stats.loc[team2, "passes"])*100
-    team2_normalised_passes = 100 - team1_normalised_passes
-    team1_normalised_fouls_committed = team_stats.loc[team1, "fouls_committed"]/(team_stats.loc[team1, "fouls_committed"]+team_stats.loc[team2, "fouls_committed"])*100
-    team2_normalised_fouls_committed = 100 - team1_normalised_fouls_committed
-    team1_normalised_xg = team_stats.loc[team1, "xg"]/(team_stats.loc[team1, "xg"] + team_stats.loc[team2, "xg"])*100
-    team2_normalised_xg = 100 - team1_normalised_xg
+    team1_normalised_shots, team2_normalised_shots = get_percentage_share('shots', team_stats, team1, team2)
+    team1_normalised_carries, team2_normalised_carries = get_percentage_share('carries', team_stats, team1,team2)
+    team1_normalised_pressures, team2_normalised_pressures = get_percentage_share('pressures', team_stats, team1, team2)
+    team1_normalised_passes, team2_normalised_passes = get_percentage_share('passes', team_stats, team1, team2)
+    team1_normalised_fouls_committed, team2_normalised_fouls_committed = get_percentage_share('fouls_committed', team_stats, team1, team2)
+    team1_normalised_xG, team2_normalised_xG = get_percentage_share('xG', team_stats, team1, team2)
     stats_by_metric = ({
         "normalised_shots":{
             team1:team1_normalised_shots,
@@ -50,9 +51,9 @@ def normalise_stats_by_metric(report):
             team1:team1_normalised_fouls_committed,
             team2:team2_normalised_fouls_committed
         },
-        "normalised_xg":{
-            team1:team1_normalised_xg,
-            team2:team2_normalised_xg
+        "normalised_xG":{
+            team1:team1_normalised_xG,
+            team2:team2_normalised_xG
         }
     })
     return pd.DataFrame(stats_by_metric).T
@@ -78,6 +79,7 @@ def plot_pass_network(match_id, report, team, output_dir = 'outputs'):
     plt.tight_layout()
     plt.savefig(pass_network_data_path)
     plt.show()
+    plt.close(fig)
 def plot_shot_map(match_id, team, report, output_dir = 'outputs'):
     pitch = Pitch(pitch_type="statsbomb", half = True)
     fig, ax = pitch.draw()
@@ -94,29 +96,34 @@ def plot_shot_map(match_id, team, report, output_dir = 'outputs'):
     plt.tight_layout()
     plt.savefig(shot_map_path)
     plt.show()
-def plot_xg_race(match_id, report, output_dir = 'outputs'):
+    plt.close(fig)
+def plot_xG_race(match_id, report, output_dir = 'outputs'):
     team1, team2 = report["teams"]
-    xg_race = report['xg_timeline'].copy()
-    xg_race['time'] = (xg_race['minute'] + (xg_race['second']/60))
-    xg_race = xg_race[['time','team','cumulative_xg']]
-    ax = xg_race[xg_race['team'] == team1].plot.line(x = 'time', y = 'cumulative_xg', rot = 0, label = team1)
-    xg_race[xg_race['team'] == team2].plot.line(x = 'time', y = 'cumulative_xg', rot = 0, ax = ax, label = team2)
-    xg_race_path = os.path.join(output_dir, f'match_{match_id}_xg_race.png')
-    plt.ylabel("Cumulative XG")
-    plt.title(f"Xg race between teams - match {match_id}")
-    plt.legend()
+    xG_race = report['xG_timeline'].copy()
+    xG_race['time'] = (xG_race['minute'] + (xG_race['second']/60))
+    xG_race = xG_race[['time','team','cumulative_xG']]
+    fig, ax = plt.subplots()
+    for team in [team1, team2]:
+        team_data = xG_race[xG_race["team"] == team]
+        ax.step(team_data["time"],team_data["cumulative_xG"],where="post",label=team,)
+    xG_race_path = os.path.join(output_dir, f'match_{match_id}_xG_race.png')
+    ax.set_ylabel("Cumulative xG")
+    ax.set_title(f"xG race between teams - match {match_id}")
+    ax.legend()
     plt.tight_layout()
-    plt.savefig(xg_race_path)
+    plt.savefig(xG_race_path)
     plt.show()
-def plot_graphs(match_id, report, output_dir = 'outputs', team_stats = False, xg_race = False, shot_map = False, pass_network = False):
+    plt.close(fig)
+def plot_graphs(match_id, report, output_dir = 'outputs', team_stats = False, xG_race = False, shot_map = False, pass_network = False):
+    os.makedirs(output_dir, exist_ok=True)
     team1, team2 = report['teams']
-    if team_stats == True:
+    if team_stats:
         plot_team_stats(report, output_dir)
-    if xg_race == True:
-        plot_xg_race(match_id, report, output_dir)
-    if shot_map == True:
+    if xG_race:
+        plot_xG_race(match_id, report, output_dir)
+    if shot_map:
         plot_shot_map(match_id, team1, report, output_dir)
         plot_shot_map(match_id, team2, report, output_dir)
-    if pass_network == True:
+    if pass_network:
         plot_pass_network(match_id,report, team1, output_dir)
         plot_pass_network(match_id,report, team2, output_dir)

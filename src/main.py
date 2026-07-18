@@ -14,7 +14,7 @@ def main():
         match_id,
         report,
         team_stats=True,
-        xg_race=True,
+        xG_race=True,
         shot_map=True,
         pass_network=True,
     )

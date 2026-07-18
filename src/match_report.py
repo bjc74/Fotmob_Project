@@ -1,7 +1,7 @@
 import pandas as pd
 from statsbombpy import sb
 import os
-from analytics import load_match_data, get_score, count_events_by_team, get_top_players_by_events, count_shot_outcome_by_team, get_xg_stats, get_attacking_stats, get_xg_timeline, get_shot_map_data, get_pass_network_data, get_pass_edges
+from analytics import load_match_data, get_score, count_events_by_team, get_top_players_by_events, count_shot_outcome_by_team, get_xG_stats, get_attacking_stats, get_xG_timeline, get_shot_map_data, get_pass_network_data, get_pass_edges
 def match_report(match_id):
     lineups, events, team1, team2 = load_match_data(match_id)
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
@@ -19,22 +19,22 @@ def match_report(match_id):
     team2_shots_on_target = team2_shots_saved + team2_goals
     top_players_by_events = get_top_players_by_events(events, 5)
     top_on_ball_contributors = get_attacking_stats(events)
-    top_xg_shots, xg_by_team = get_xg_stats(events)
-    xg_timeline = get_xg_timeline(events)
+    top_xG_shots, xG_by_team = get_xG_stats(events)
+    xG_timeline = get_xG_timeline(events)
     shot_map_data_team1 = get_shot_map_data(events, team1)
     shot_map_data_team2 = get_shot_map_data(events, team2)
     pass_network_team1 = get_pass_network_data(events, lineups, team1)
     pass_network_team2 = get_pass_network_data(events, lineups, team2)
     pass_edges_team1 = get_pass_edges(events, lineups, team1)
     pass_edges_team2 = get_pass_edges(events, lineups, team2)
-    team1_xg = xg_by_team.loc[team1]
-    team2_xg = xg_by_team.loc[team2]
+    team1_xG = xG_by_team.get(team1, 0.0)
+    team2_xG = xG_by_team.get(team2, 0.0)
     team_stats = pd.DataFrame([
         {
             "team":team1,
             "goals":team1_score,
             "shots":team1_shots,
-            "xg":team1_xg,
+            "xG":team1_xG,
             "passes":team1_passes,
             "dribbles":team1_dribbles,
             "carries":team1_carries,
@@ -45,7 +45,7 @@ def match_report(match_id):
             "team":team2,
             "goals":team2_score,
             "shots":team2_shots,
-            "xg":team2_xg,
+            "xG":team2_xG,
             "passes":team2_passes,
             "dribbles":team2_dribbles,
             "carries":team2_carries,
@@ -57,7 +57,7 @@ def match_report(match_id):
         {
             "team":team1,
             "total_shots":team1_shots,
-            "xg":team1_xg,
+            "xG":team1_xG,
             "goals":team1_score,
             "shots_on_target":team1_shots_on_target,
             "shots_blocked":team1_shots_blocked,
@@ -66,7 +66,7 @@ def match_report(match_id):
         {
             "team":team2,
             "total_shots":team2_shots,
-            "xg":team2_xg,
+            "xG":team2_xG,
             "goals":team2_score,
             "shots_on_target":team2_shots_on_target,
             "shots_blocked":team2_shots_blocked,
@@ -83,9 +83,9 @@ def match_report(match_id):
         "team_stats":team_stats,
         "shot_summary":shot_summary,
         "top_players":top_players_by_events,
-        "top_xg_shots":top_xg_shots,
+        "top_xG_shots":top_xG_shots,
         "top_on_ball_contributors":top_on_ball_contributors,
-        "xg_timeline":xg_timeline,
+        "xG_timeline":xG_timeline,
         "shot_map_data":{
             team1:shot_map_data_team1,
             team2:shot_map_data_team2
@@ -105,14 +105,14 @@ def print_match_report(report):
     team1, team2 = report["teams"]
     score = report["score"]
     top_players = report["top_players"]
-    top_xg_shots = report["top_xg_shots"]
+    top_xG_shots = report["top_xG_shots"]
     top_on_ball_contributors = report["top_on_ball_contributors"].head(10)
     print(f"Match: {team1} {score[team1]}-{score[team2]} {team2}")
     print("\nBasic stats: ")
     print(f"{team1}:")
     print(f"- Shots: {team_stats.loc[team1, "shots"]}")
     print(f"- Goals: {score[team1]}")
-    print(f"- XG: {team_stats.loc[team1,"xg"]:.2f}")
+    print(f"- xG: {team_stats.loc[team1,"xG"]:.2f}")
     print(f"- Passes: {team_stats.loc[team1, "passes"]}")
     print(f"- Carries: {team_stats.loc[team1, "carries"]}")
     print(f"- Pressures: {team_stats.loc[team1, "pressures"]}")
@@ -120,27 +120,27 @@ def print_match_report(report):
     print(f"\n{team2}:")
     print(f"- Shots: {team_stats.loc[team2, "shots"]}")
     print(f"- Goals: {score[team2]}")
-    print(f"- XG: {team_stats.loc[team2, "xg"]:.2f}")
+    print(f"- xG: {team_stats.loc[team2, "xG"]:.2f}")
     print(f"- Passes: {team_stats.loc[team2, "passes"]}")
     print(f"- Carries: {team_stats.loc[team2, "carries"]}")
     print(f"- Pressures: {team_stats.loc[team2, "pressures"]}")
     print(f"- Fouls Committed: {team_stats.loc[team2, "fouls_committed"]}")
     print("\nTop players:")
     print(top_players.to_string(index=False))
-    print("\nTop XG shots:")
-    print(top_xg_shots.to_string(index = False))
+    print("\nTop xG shots:")
+    print(top_xG_shots.to_string(index = False))
     print("\nTop Players by attacking stats:")
     print(top_on_ball_contributors.to_string(index = False))
     print(f"\nShot Summary:\n{team1}:")
     print(f"- Total Shots: {shot_summary.loc[team1, "total_shots"]}")
-    print(f"- XG: {shot_summary.loc[team1, "xg"]:.2f}")
+    print(f"- xG: {shot_summary.loc[team1, "xG"]:.2f}")
     print(f"- Goals: {score[team1]}")
     print(f"- Shots On Target: {shot_summary.loc[team1, "shots_on_target"]}")
     print(f"- Shots Off Target: {shot_summary.loc[team1, "shots_off_target"]}")
     print(f"- Shots Blocked: {shot_summary.loc[team1, "shots_blocked"]}")
     print(f"\n{team2}: ")
     print(f"- Total Shots: {shot_summary.loc[team2, "total_shots"]}")
-    print(f"- XG: {shot_summary.loc[team2, "xg"]:.2f}")
+    print(f"- xG: {shot_summary.loc[team2, "xG"]:.2f}")
     print(f"- Goals: {score[team2]}")
     print(f"- Shots On Target: {shot_summary.loc[team2, "shots_on_target"]}")
     print(f"- Shots Off Target: {shot_summary.loc[team2, "shots_off_target"]}")
@@ -152,27 +152,27 @@ def export_report(report, output_dir="outputs"):
     team_stats_path = os.path.join(output_dir, f"match_{match_id}_team_stats.csv")
     shot_summary_path = os.path.join(output_dir, f"match_{match_id}_shot_summary.csv")
     top_players_path = os.path.join (output_dir, f"match_{match_id}_top_players.csv")
-    top_xg_shots_path = os.path.join(output_dir, f"match_{match_id}_top_xg_shots.csv")
+    top_xG_shots_path = os.path.join(output_dir, f"match_{match_id}_top_xG_shots.csv")
     top_on_ball_contributors_path = os.path.join(output_dir, f"match_{match_id}_top_on_ball_contributors.csv")
-    xg_timeline_path = os.path.join(output_dir, f"match_{match_id}_xg_timeline.csv")
+    xG_timeline_path = os.path.join(output_dir, f"match_{match_id}_xG_timeline.csv")
     shot_map_data_team1_path = os.path.join(output_dir, f"match_{match_id}_{team1}_shot_map_data.csv")
     shot_map_data_team2_path = os.path.join(output_dir, f"match_{match_id}_{team2}_shot_map_data.csv")
     pass_network_team1_path = os.path.join(output_dir, f'match_{match_id}_{team1}_pass_network.csv')
     pass_network_team2_path = os.path.join(output_dir, f'match_{match_id}_{team2}_pass_network.csv')
     pass_edges_team1_path = os.path.join(output_dir, f'match_{match_id}_{team1}_pass_edges.csv')
     pass_edges_team2_path = os.path.join(output_dir, f'match_{match_id}_{team2}_pass_edges.csv')
-    team_stats_csv = report["team_stats"].to_csv(team_stats_path, index = False)
-    shot_summary_csv = report["shot_summary"].to_csv(shot_summary_path, index = False)
-    top_players_csv = report["top_players"].to_csv(top_players_path, index = False)
-    top_xg_shots_csv = report["top_xg_shots"].to_csv(top_xg_shots_path, index = False)
-    top_on_ball_contributors_csv = report["top_on_ball_contributors"].to_csv(top_on_ball_contributors_path, index = False)
-    xg_timeline_csv = report["xg_timeline"].to_csv(xg_timeline_path, index = False)
-    shot_map_data_team1_csv = report['shot_map_data'][team1].to_csv(shot_map_data_team1_path, index = False)
-    shot_map_data_team2_csv = report['shot_map_data'][team2].to_csv(shot_map_data_team2_path, index = False)
-    pass_network_team1_csv = report['pass_network'][team1].to_csv(pass_network_team1_path, index = False)
-    pass_network_team2_csv = report['pass_network'][team2].to_csv(pass_network_team2_path, index = False)
-    pass_edges_team1_csv = report['pass_edges'][team1].to_csv(pass_edges_team1_path, index = False)
-    pass_edges_team2_csv = report['pass_edges'][team2].to_csv(pass_edges_team2_path, index = False)
+    report["team_stats"].to_csv(team_stats_path, index = False)
+    report["shot_summary"].to_csv(shot_summary_path, index = False)
+    report["top_players"].to_csv(top_players_path, index = False)
+    report["top_xG_shots"].to_csv(top_xG_shots_path, index = False)
+    report["top_on_ball_contributors"].to_csv(top_on_ball_contributors_path, index = False)
+    report["xG_timeline"].to_csv(xG_timeline_path, index = False)
+    report['shot_map_data'][team1].to_csv(shot_map_data_team1_path, index = False)
+    report['shot_map_data'][team2].to_csv(shot_map_data_team2_path, index = False)
+    report['pass_network'][team1].to_csv(pass_network_team1_path, index = False)
+    report['pass_network'][team2].to_csv(pass_network_team2_path, index = False)
+    report['pass_edges'][team1].to_csv(pass_edges_team1_path, index = False)
+    report['pass_edges'][team2].to_csv(pass_edges_team2_path, index = False)
 def validate_scores(competition_id, season_id, n=20):
     matches = sb.matches(competition_id=competition_id, season_id=season_id)
     errors = []

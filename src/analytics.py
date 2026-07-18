@@ -1,5 +1,4 @@
 import pandas as pd
-import os
 from statsbombpy import sb
 def load_match_data(match_id):
     lineups = sb.lineups(match_id = match_id)
@@ -19,8 +18,8 @@ def count_events_by_team(event, events, team1, team2):
     team1_count = event_by_team.get(team1, 0)
     team2_count = event_by_team.get(team2, 0)
     return team1_count, team2_count
-def count_events_by_player(event, events):
-    event = events[events["type"] == event]
+def count_events_by_player(event_type, events):
+    event = events[events["type"] == event_type]
     event_by_player = event["player"].value_counts()
     return event_by_player
 def get_top_players_by_events(events, n):
@@ -37,7 +36,7 @@ def count_shot_outcome_by_team(shot_type, events, team1, team2):
     team1_score = goals_by_team.get(team1, 0)
     team2_score = goals_by_team.get(team2, 0)
     return team1_score, team2_score
-def get_xg_stats(events):
+def get_xG_stats(events):
     shots = events[events["type"] == "Shot"]
     shots = shots[["player", "team", "minute", "shot_statsbomb_xg", "shot_outcome"]]
     expected_goals_by_team = shots.groupby("team")["shot_statsbomb_xg"].sum()
@@ -51,17 +50,17 @@ def get_attacking_stats(events):
     events = events.reset_index()
     sorted_events = events.sort_values('total_attacking_stats', ascending=False)
     return sorted_events
-def get_xg_timeline(events):
+def get_xG_timeline(events):
     shots = events[events["type"] == "Shot"]
-    shots = shots[["minute", "second", "team", "player", "shot_statsbomb_xg", "shot_outcome"]]
-    shots["cumulative_xg"] = shots.groupby("team")["shot_statsbomb_xg"].cumsum()
+    shots = shots[["minute", "second", "team", "player", "shot_statsbomb_xg", "shot_outcome"]].copy()
+    shots["cumulative_xG"] = shots.groupby("team")["shot_statsbomb_xg"].cumsum()
     return shots
 def get_shot_map_data(events, team):
     events = events[events['team'] == team]
     shots = events[events['type'] == 'Shot']
     shots['x'] = shots['location'].str[0]
     shots['y'] = shots['location'].str[1]
-    shots = shots[['player', 'team', 'minute','x','y', 'shot_statsbomb_xg', 'shot_outcome']]
+    shots = shots[['player', 'team', 'minute','x','y', 'shot_statsbomb_xg', 'shot_outcome']].copy()
     return shots
 def get_pass_combinations(events, team):
     events = events[events['team'] == team]
@@ -75,11 +74,11 @@ def get_pass_combinations(events, team):
     return pass_combinations
 def get_pass_network_data(events, lineups, team):
     lineups = lineups[team]
-    lineup_numbers = lineups[['player_name', 'jersey_number']]
+    lineup_numbers = lineups[['player_name', 'jersey_number']].copy()
     events_by_team = events[events['team'] == team]
     passes = events_by_team[events_by_team['type'] == 'Pass']
     passes = passes.dropna(subset = ['pass_recipient'])
-    pass_network = passes[['team', 'player', 'location']]
+    pass_network = passes[['team', 'player', 'location']].copy()
     pass_network['x'] = pass_network['location'].str[0]
     pass_network['y'] = pass_network['location'].str[1]
     pass_network = pass_network[['team', 'player','x', 'y']]

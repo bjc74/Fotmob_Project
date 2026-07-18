@@ -1,86 +1,225 @@
-# Mini FotMob / Football Match Report Generator
+# Football Match Analytics Report Generator
 
-This project uses StatsBomb open event data to generate a basic football match report for a given match ID.
+A Python football analytics project that transforms StatsBomb open event data into match reports, CSV datasets, SQL analysis and football visualisations.
 
-The report includes:
-- Final score
-- Team-level event counts
-- Shots, passes, carries, dribbles, pressures and fouls committed
-- Shot summary by team
-- Shots on target, off target and blocked shots
-- Top players by event count
-- Handling of own goals in the score calculation
-- Exports shot summary, team stats and top players as CSV files
-- Includes score validation against official match data
-- Team event-share visualisation exported as PNG
+## Features
+
+### Match analysis
+- Final score calculation, including own goals
+- Team event statistics
+- Shot and expected-goals analysis
+- Player involvement rankings
+- Official score validation
+
+### Visualisations
+- Expected-goals race
+- Shot maps
+- Pass networks
+- Team event-share comparison
+
+### Data outputs
+- Team statistics
+- Shot summaries
+- Player statistics
+- Pass-network nodes and edges
+- SQL analysis tables
+
+### SQL analysis
+- Shooting efficiency
+- xG finishing performance
+- Possession-style metrics
+- Player attacking contribution
+- Match-level goals and xG comparisons
 
 ## Why I built this
 
-I built this project to practise Python, Pandas, football event data analysis, and basic project structure using real sports data.
+I built this project to develop practical experience with Python, Pandas, SQL, data visualisation and modular software design using real football event data.
 
-The aim is to turn raw football event data into readable team and player reports, similar to a simplified FotMob-style match summary.
+The project converts raw StatsBomb events into readable match reports and visual analytics resembling the information found in football analytics platforms.
 
-## How it works
+## Example visualisations
 
-The main workflow is:
+### Expected-goals race
 
-```python
-report = match_report(match_id)
-print_match_report(report)
-export_report(report, output_dir="outputs")
-print(validate_scores(competition_id, season_id))
-plot_team_stats(report)
+![Expected-goals race](docs/images/xg_race.png)
+
+### Shot map
+
+![Shot map](docs/images/shot_map.png)
+
+### Pass network
+
+![Pass network](docs/images/pass_network.png)
+
+### Normalised Stats by team
+
+![Normalised stats by team](docs/images/normalised_stats_by_team.png)
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd <repository-name>
 ```
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running the project
+
+Select a StatsBomb match ID in `main.py`, then run:
+
+```bash
+python main.py
+```
+
+The program:
+
+1. Loads the match events and line-ups.
+2. Generates the match report.
+3. Calculates team, player, shot and xG statistics.
+4. Exports the tabular outputs as CSV files.
+5. Generates the selected visualisations as PNG files.
+
 ## Example report
-Match: Liverpool 1-2 Arsenal
+
+```text
+Match: Everton 1-2 Arsenal
 
 Basic stats: 
-Liverpool:
-- Shots: 14
+Everton:
+- Shots: 15
 - Goals: 1
-- Passes: 490
-- Carries: 308
-- Pressures: 127
-- Fouls Committed: 13
+- XG: 1.27
+- Passes: 381
+- Carries: 235
+- Pressures: 271
+- Fouls Committed: 19
 
 Arsenal:
-- Shots: 12
+- Shots: 14
 - Goals: 2
-- Passes: 461
-- Carries: 379
-- Pressures: 137
-- Fouls Committed: 20
+- XG: 2.12
+- Passes: 422
+- Carries: 342
+- Pressures: 117
+- Fouls Committed: 11
 
 Top players:
-                  player  events
-El-Hadji Ousseynou Diouf     211
-            Harry Kewell     210
-          Steven Gerrard     207
-            Robert Pirès     204
-             Ray Parlour     196
+                     player  events
+            Thomas Gravesen     248
+             Patrick Vieira     230
+Gilberto Aparecido da Silva     178
+              Thierry Henry     178
+ Laureano Bisan-Etame Mayer     165
+
+Top XG shots:
+          player    team  minute  shot_statsbomb_xg shot_outcome
+   Thierry Henry Arsenal      34           0.783500         Goal
+   Nick Chadwick Everton       6           0.421668        Saved
+  Patrick Vieira Arsenal      57           0.378841        Saved
+    Robert Pirès Arsenal      57           0.319439         Goal
+Tomasz Radziński Everton      83           0.200138         Goal
+
+Top Players by attacking stats:
+                     player    team  Carry  Dribble  Pass  Shot  total_attacking_stats
+             Patrick Vieira Arsenal     52        5    62     3                    122
+            Thomas Gravesen Everton     50        3    58     2                    113
+ Laureano Bisan-Etame Mayer Arsenal     42        2    52     0                     96
+         Alessandro Pistone Everton     33        1    55     0                     89
+               Robert Pirès Arsenal     40        6    39     3                     88
+Gilberto Aparecido da Silva Arsenal     39        0    49     0                     88
+          Fredrik Ljungberg Arsenal     38        5    39     1                     83
+              Thierry Henry Arsenal     35        7    29     4                     75
+                Ashley Cole Arsenal     26        3    37     0                     66
+             David Unsworth Everton     21        0    39     0                     60
 
 Shot Summary:
-Liverpool:
-- Total Shots: 14
+Everton:
+- Total Shots: 15
+- XG: 1.27
 - Goals: 1
+- Shots On Target: 5
+- Shots Off Target: 5
+- Shots Blocked: 5
+
+Arsenal: 
+- Total Shots: 14
+- XG: 2.12
+- Goals: 2
 - Shots On Target: 4
 - Shots Off Target: 6
 - Shots Blocked: 3
+```
 
-Arsenal: 
-- Total Shots: 12
-- Goals: 2
-- Shots On Target: 6
-- Shots Off Target: 4
-- Shots Blocked: 1
+## Running the SQL analysis
+
+After generating the required CSV outputs, run:
+
+```bash
+python sql_analysis.py
+```
+
+The SQL outputs are saved under:
+
+```text
+outputs/sql_analysis/
+```
+
+They include shooting-efficiency, xG-finishing, possession-style, player-contribution and match-summary tables.
+
+## Project structure
+
+```text
+.
+├── main.py
+├── src/
+│   ├── analytics.py
+│   ├── match_report.py
+│   └── visualisations.py
+├── sql_analysis.py
+├── outputs/
+├── docs/
+│   └── images/
+│   ├── pass_network.png
+│   ├── shot_map.png
+│   ├── xg_race.png
+│   └── normalised_stats_by_team.png
+├── requirements.txt
+└── README.md
+```
 
 ## Current limitations
-- Shots on target is calculated as shots saved + goals - we don't know whether to classify blocked shots as on or off target
-- Current stats are all basic, no advanced stats such as expected goals added yet
-- May print away team - home team instead of home team - away team - this can be prevented by using match_report_by_competition instead
 
-## Next Steps
-- Add team/player visualisations
-- Add shot maps
-- Add SQL storage layer
-- Improve project structure further
+- The project analyses one match at a time.
+- The SQL analysis still relies on previously exported CSV files.
+- Some SQL inputs currently use fixed filenames.
+- The analysis is limited to competitions available through StatsBomb open data.
+- The project does not yet provide an interactive user interface.
+
+## Planned improvements
+
+- Generalise the SQL pipeline for arbitrary match IDs.
+- Support analysis across multiple matches.
+- Add automated tests for core analytics functions.
+- Build an interactive dashboard.
+
+## Data source
+
+Match event data is provided through StatsBomb Open Data.

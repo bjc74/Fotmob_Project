@@ -41,7 +41,7 @@ The project converts raw StatsBomb events into readable match reports and visual
 
 ### Expected-goals race
 
-![Expected-goals race](docs/images/xg_race.png)
+![Expected-goals race](docs/images/xG_race.png)
 
 ### Shot map
 
@@ -59,8 +59,8 @@ The project converts raw StatsBomb events into readable match reports and visual
 Clone the repository:
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/bjc74/Fotmob_Project.git
+cd Fotmob_Project
 ```
 
 Create and activate a virtual environment:
@@ -106,7 +106,7 @@ Basic stats:
 Everton:
 - Shots: 15
 - Goals: 1
-- XG: 1.27
+- xG: 1.27
 - Passes: 381
 - Carries: 235
 - Pressures: 271
@@ -115,7 +115,7 @@ Everton:
 Arsenal:
 - Shots: 14
 - Goals: 2
-- XG: 2.12
+- xG: 2.12
 - Passes: 422
 - Carries: 342
 - Pressures: 117
@@ -129,8 +129,8 @@ Gilberto Aparecido da Silva     178
               Thierry Henry     178
  Laureano Bisan-Etame Mayer     165
 
-Top XG shots:
-          player    team  minute  shot_statsbomb_xg shot_outcome
+Top xG shots:
+          player    team  minute  shot_statsbomb_xG shot_outcome
    Thierry Henry Arsenal      34           0.783500         Goal
    Nick Chadwick Everton       6           0.421668        Saved
   Patrick Vieira Arsenal      57           0.378841        Saved
@@ -153,7 +153,7 @@ Gilberto Aparecido da Silva Arsenal     39        0    49     0                 
 Shot Summary:
 Everton:
 - Total Shots: 15
-- XG: 1.27
+- xG: 1.27
 - Goals: 1
 - Shots On Target: 5
 - Shots Off Target: 5
@@ -161,7 +161,7 @@ Everton:
 
 Arsenal: 
 - Total Shots: 14
-- XG: 2.12
+- xG: 2.12
 - Goals: 2
 - Shots On Target: 4
 - Shots Off Target: 6
@@ -194,7 +194,7 @@ Football_match_analytics/
 │       ├── normalised_stats_by_team.png
 │       ├── pass_network.png
 │       ├── shot_map.png
-│       └── xg_race.png
+│       └── xG_race.png
 ├── src/
 │   ├── analytics.py
 │   ├── main.py

@@ -63,21 +63,18 @@ def get_shot_map_data(events, team):
     shots = shots[['player', 'team', 'minute','x','y', 'shot_statsbomb_xg', 'shot_outcome']].copy()
     return shots
 def get_pass_combinations(events, team):
-    events = events[events['team'] == team]
-    passes = events[events['type'] == 'Pass']
+    passes = events.loc[(events['team'] == team) & (events['type'] == 'Pass') & (events['pass_recipient'].notna()) & (events['pass_outcome'].isna())]
     passes = passes[['team', 'player', 'pass_recipient']]
     pass_combinations = passes.value_counts()
     pass_combinations = pass_combinations.reset_index(name = 'pass_count')
     pass_combinations = pass_combinations.rename(columns={'player':'passer', 'pass_recipient':'recipient'})
     pass_combinations = pass_combinations.sort_values(['team', 'pass_count'], ascending=[True, False])
-    pass_combinations = pass_combinations[pass_combinations["pass_count"] >= 5].copy()
+    pass_combinations = pass_combinations[pass_combinations["pass_count"] > 3].copy()
     return pass_combinations
 def get_pass_network_data(events, lineups, team):
     lineups = lineups[team]
     lineup_numbers = lineups[['player_name', 'jersey_number']].copy()
-    events_by_team = events[events['team'] == team]
-    passes = events_by_team[events_by_team['type'] == 'Pass']
-    passes = passes.dropna(subset = ['pass_recipient'])
+    passes = events.loc[(events['team'] == team) & (events['type'] == 'Pass') & (events['pass_recipient'].notna()) & (events['pass_outcome'].isna())]
     pass_network = passes[['team', 'player', 'location']].copy()
     pass_network['x'] = pass_network['location'].str[0]
     pass_network['y'] = pass_network['location'].str[1]

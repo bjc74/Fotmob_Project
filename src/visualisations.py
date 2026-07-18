@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from mplsoccer import Pitch
 
-def plot_team_stats(report, output_dir="outputs"):
+def plot_team_stats(report, output_dir):
     match_id = report["match_id"]
     os.makedirs(output_dir, exist_ok=True)
     normalised_stats_by_metric = normalise_stats_by_metric(report)
@@ -57,7 +57,7 @@ def normalise_stats_by_metric(report):
         }
     })
     return pd.DataFrame(stats_by_metric).T
-def plot_pass_network(match_id, report, team, output_dir = 'outputs'):
+def plot_pass_network(match_id, report, team, output_dir):
     pitch = Pitch(pitch_type="statsbomb")
     fig, ax = pitch.draw()
     pass_network = report["pass_network"][team]
@@ -73,14 +73,14 @@ def plot_pass_network(match_id, report, team, output_dir = 'outputs'):
     max_line_width = pass_edges['pass_count'].max()
     for _,row in pass_edges.iterrows():
         ax.plot((row['passer_x'] ,row['recipient_x']),(row['passer_y'], row['recipient_y']), lw = 0.5 + row['pass_count']*5/max_line_width, color = 'red', alpha = 0.4, zorder = 1)
-    plt.title(f'match_{match_id}_{team}_pass_network')
+    plt.title(f'{team} pass network - Match {match_id}')
     plt.ylabel('')
     plt.xlabel('')
     plt.tight_layout()
     plt.savefig(pass_network_data_path)
     plt.show()
     plt.close(fig)
-def plot_shot_map(match_id, team, report, output_dir = 'outputs'):
+def plot_shot_map(match_id, team, report, output_dir):
     pitch = Pitch(pitch_type="statsbomb", half = True)
     fig, ax = pitch.draw()
     shot_map_path = os.path.join(output_dir, f'match_{match_id}_{team}_shot_map.png')
@@ -92,12 +92,12 @@ def plot_shot_map(match_id, team, report, output_dir = 'outputs'):
     ax.legend(loc="upper left")
     plt.ylabel('')
     plt.xlabel('')
-    plt.title(f'Shot Map {team} - match {match_id}')
+    plt.title(f'{team} shot Map - match {match_id}')
     plt.tight_layout()
     plt.savefig(shot_map_path)
     plt.show()
     plt.close(fig)
-def plot_xG_race(match_id, report, output_dir = 'outputs'):
+def plot_xG_race(match_id, report, output_dir):
     team1, team2 = report["teams"]
     xG_race = report['xG_timeline'].copy()
     xG_race['time'] = (xG_race['minute'] + (xG_race['second']/60))
@@ -108,13 +108,13 @@ def plot_xG_race(match_id, report, output_dir = 'outputs'):
         ax.step(team_data["time"],team_data["cumulative_xG"],where="post",label=team,)
     xG_race_path = os.path.join(output_dir, f'match_{match_id}_xG_race.png')
     ax.set_ylabel("Cumulative xG")
-    ax.set_title(f"xG race between teams - match {match_id}")
+    ax.set_title(f"xG race - match {match_id}")
     ax.legend()
     plt.tight_layout()
     plt.savefig(xG_race_path)
     plt.show()
     plt.close(fig)
-def plot_graphs(match_id, report, output_dir = 'outputs', team_stats = False, xG_race = False, shot_map = False, pass_network = False):
+def plot_graphs(match_id, report, output_dir, team_stats = False, xG_race = False, shot_map = False, pass_network = False):
     os.makedirs(output_dir, exist_ok=True)
     team1, team2 = report['teams']
     if team_stats:

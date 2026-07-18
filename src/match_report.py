@@ -145,9 +145,9 @@ def print_match_report(report):
     print(f"- Shots On Target: {shot_summary.loc[team2, "shots_on_target"]}")
     print(f"- Shots Off Target: {shot_summary.loc[team2, "shots_off_target"]}")
     print(f"- Shots Blocked: {shot_summary.loc[team2, "shots_blocked"]}")
-def export_report(report, output_dir="outputs"):
-    os.makedirs(output_dir, exist_ok=True)
+def export_report(report, output_dir):
     match_id = report["match_id"]
+    os.makedirs(output_dir, exist_ok=True)
     team1, team2 = report['teams']
     team_stats_path = os.path.join(output_dir, f"match_{match_id}_team_stats.csv")
     shot_summary_path = os.path.join(output_dir, f"match_{match_id}_shot_summary.csv")

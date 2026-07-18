@@ -188,21 +188,25 @@ They include shooting-efficiency, xG-finishing, possession-style, player-contrib
 
 ```text
 .
-├── main.py
-├── src/
-│   ├── analytics.py
-│   ├── match_report.py
-│   └── visualisations.py
-├── sql_analysis.py
-├── outputs/
+Football_match_analytics/
 ├── docs/
 │   └── images/
-│   ├── pass_network.png
-│   ├── shot_map.png
-│   ├── xg_race.png
-│   └── normalised_stats_by_team.png
-├── requirements.txt
-└── README.md
+│       ├── normalised_stats_by_team.png
+│       ├── pass_network.png
+│       ├── shot_map.png
+│       └── xg_race.png
+├── notes/
+├── src/
+│   ├── analytics.py
+│   ├── main.py
+│   ├── match_report.py
+│   ├── sql_analysis.py
+│   ├── SQL.py
+│   └── visualisations.py
+├── .gitattributes
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
 ## Current limitations

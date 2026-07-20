@@ -63,8 +63,8 @@ def get_shot_map_data(events, team):
     shots = shots[['player', 'team', 'minute','x','y', 'shot_statsbomb_xg', 'shot_outcome']].copy()
     return shots
 def get_pass_combinations(events, team):
-    passes = events.loc[(events['team'] == team) & (events['type'] == 'Pass') & (events['pass_recipient'].notna()) & (events['pass_outcome'].isna())]
-    passes = passes[['team', 'player', 'pass_recipient']]
+    passes = filter_completed_passes(events, team)
+    passes = passes[['team', 'player', 'pass_recipient']].copy()
     pass_combinations = passes.value_counts()
     pass_combinations = pass_combinations.reset_index(name = 'pass_count')
     pass_combinations = pass_combinations.rename(columns={'player':'passer', 'pass_recipient':'recipient'})
@@ -74,7 +74,7 @@ def get_pass_combinations(events, team):
 def get_pass_network_data(events, lineups, team):
     lineups = lineups[team]
     lineup_numbers = lineups[['player_name', 'jersey_number']].copy()
-    passes = events.loc[(events['team'] == team) & (events['type'] == 'Pass') & (events['pass_recipient'].notna()) & (events['pass_outcome'].isna())]
+    passes = filter_completed_passes(events, team)
     pass_network = passes[['team', 'player', 'location']].copy()
     pass_network['x'] = pass_network['location'].str[0]
     pass_network['y'] = pass_network['location'].str[1]
@@ -93,3 +93,6 @@ def get_pass_edges(events, lineups , team):
     pass_edges = pass_edges.rename(columns={'avg_x':'recipient_x', 'avg_y':'recipient_y'})
     pass_edges = pass_edges[['passer', 'team', 'pass_count' ,'passer_x', 'passer_y', 'recipient', 'recipient_x', 'recipient_y', ]]
     return pass_edges
+def filter_completed_passes(events, team):
+    completed_passes = events.loc[(events['team'] == team) & (events['type'] == 'Pass') & (events['pass_recipient'].notna()) & (events['pass_outcome'].isna())].copy()
+    return completed_passes

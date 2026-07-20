@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from src.analytics import get_score, count_events_by_team, get_top_players_by_events, filter_completed_passes, get_pass_combinations, get_xG_stats, get_xG_timeline
+from src.analytics import get_score, count_events_by_team, get_top_players_by_events, filter_completed_passes, get_pass_combinations, get_xG_stats
 def test_get_score():
     events = pd.DataFrame({'type':['Shot', 'Shot', 'Shot'],
                           'shot_outcome':['Goal' ,'Goal', 'Goal'], 

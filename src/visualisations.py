@@ -64,12 +64,9 @@ def plot_pass_network(match_id, report, team, output_dir):
     pass_edges = report["pass_edges"][team]
     pass_network_data_path  = os.path.join(output_dir, f'match_{match_id}_{team}_pass_network.png')
     pitch.scatter(x = pass_network['avg_x'], y = pass_network['avg_y'], s = pass_network['total_passes']*10, ax = ax, zorder = 2)
-    for _, row in pass_network.iterrows():
-        if pd.notna(row['jersey_number']) and row['jersey_number'] != 0:
-            label = int(row["jersey_number"])
-        else:
-            label = row["player"].split()[-1]
-        ax.annotate(label,(row["avg_x"], row["avg_y"]),ha="center",va="center", zorder = 3)
+    for _,row in pass_network.iterrows():
+        label = row["player"].split()[-1]
+        ax.annotate(label, (row["avg_x"], row["avg_y"]), zorder = 3)
     max_line_width = pass_edges['pass_count'].max()
     for _,row in pass_edges.iterrows():
         ax.plot((row['passer_x'] ,row['recipient_x']),(row['passer_y'], row['recipient_y']), lw = 0.5 + row['pass_count']*5/max_line_width, color = 'red', alpha = 0.4, zorder = 1)

@@ -7,6 +7,7 @@ def load_match_data(match_id):
     teams = list(lineups.keys())
     team1 = teams[0]
     team2 = teams[1]
+    events = events.loc[events["period"] != 5].copy()
     return lineups, events, team1, team2
 def get_score(events, team1, team2):
     team1_goals, team2_goals = count_shot_outcome_by_team("Goal", events, team1, team2)
